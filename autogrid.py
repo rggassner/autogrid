@@ -34,10 +34,10 @@ def get_image_mask_rows(image):
                 image.paste(part,(col*tile_size,(rowcount-1)*tile_size))
                 mask.paste(pmask,(col*tile_size,(rowcount-1)*tile_size))
         rowcount=rowcount+1
-    mask = mask.resize((sd_size,sd_size), Image.Resampling.LANCZOS)
+    mask = mask.resize((sd_size,sd_size), Image.LANCZOS)
     mask.save('outm.png')
     image.save('outi.png')
-    image = image.resize((sd_size,sd_size), Image.Resampling.LANCZOS)
+    image = image.resize((sd_size,sd_size), Image.LANCZOS)
     return image,mask,rows
 
 def read_arguments():
@@ -68,7 +68,7 @@ def gen_images(args):
         outpainted_image = pipe(prompt=args.text, negative_prompt=args.negative,image=image, mask_image=mask,num_inference_steps=args.steps).images[0]
         outpainted_image.save(out_dir+'/'+str(iteration)+'.png')
         os.mkdir(out_dir+'/'+str(iteration))
-        resized=outpainted_image.resize((tile_size*3,tile_size*3),Image.Resampling.LANCZOS)
+        resized=outpainted_image.resize((tile_size*3,tile_size*3),Image.LANCZOS)
         rowcount=1
         for row in rows:
             data = row.find_all('td')
