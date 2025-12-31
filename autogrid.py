@@ -1,13 +1,10 @@
 #!venv/bin/python3
+from io import BytesIO
 import os
-import sys
 import argparse
 import datetime
 import torch
 import requests
-import numpy as np
-
-from io import BytesIO
 from PIL import Image
 from bs4 import BeautifulSoup
 from diffusers import StableDiffusionInpaintPipeline
@@ -46,7 +43,8 @@ HEADERS = {
 # Helpers
 # =========================================================
 
-
+#def dummy(images, **kwargs):
+#    return images, False
 
 def dummy(images, **kwargs):
     return images, [False] * len(images)
@@ -252,6 +250,29 @@ def gen_images(args):
 # =========================================================
 
 def main():
+    """
+    Entry point for the grid-based Stable Diffusion outpainting pipeline.
+
+    This function parses command-line arguments, initializes the runtime
+    configuration, and launches the image generation workflow. The pipeline:
+
+    - Scrapes a remote grid-based image layout from a target website.
+    - Reconstructs the known tiles into a composite canvas.
+    - Builds an inpainting mask for missing grid cells.
+    - Loads a cached Stable Diffusion inpainting model.
+    - Iteratively generates multiple outpainted variations.
+    - Saves the full generated image and individual synthesized tiles
+      for each iteration.
+
+    The function acts as the orchestration layer, delegating scraping,
+    masking, model inference, and output management to helper functions.
+
+    Command-line arguments control prompts, inference steps, random seed,
+    and optional embedded imagery.
+
+    Returns:
+        None
+    """    
     args = read_arguments()
     gen_images(args)
 
