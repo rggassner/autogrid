@@ -23,7 +23,7 @@ URL = "https://www.sito.org/cgi-bin/gridcosm/gridcosm?level=top"
 BASEURL = "https://www.sito.org"
 
 MODEL_ID = "5w4n/deliberate-v2-inpainting"
-MODEL_CACHE = "hf_models"
+MODEL_CACHE = "/home/rgg/hf_models"
 
 
 
@@ -136,8 +136,8 @@ def get_image_mask_rows(image):
 
         rowcount += 1
 
-    mask = mask.resize((SD_SIZE, SD_SIZE), Image.LANCZOS)
-    image = image.resize((SD_SIZE, SD_SIZE), Image.LANCZOS)
+    mask = mask.resize((SD_SIZE, SD_SIZE), Image.Resampling.LANCZOS)
+    image = image.resize((SD_SIZE, SD_SIZE), Image.Resampling.LANCZOS)
 
     mask.save("outm.png")
     image.save("outi.png")
@@ -219,7 +219,7 @@ def gen_images(args):
 
         resized = result.resize(
             (TILE_SIZE * 3, TILE_SIZE * 3),
-            Image.LANCZOS
+            Image.Resampling.LANCZOS
         )
 
         rowcount = 1
