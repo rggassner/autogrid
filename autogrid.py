@@ -23,7 +23,7 @@ URL = "https://www.sito.org/cgi-bin/gridcosm/gridcosm?level=top"
 BASEURL = "https://www.sito.org"
 
 MODEL_ID = "5w4n/deliberate-v2-inpainting"
-MODEL_CACHE = "/home/rgg/hf_models"
+MODEL_CACHE = "hf_models"
 
 
 
@@ -171,7 +171,39 @@ def read_arguments():
 # Main Generation Logic
 # =========================================================
 
-def gen_images(args):
+def gen_images(args): #pylint: disable=too-many-locals
+    """
+    Generate image variations using Stable Diffusion inpainting and tile extraction.
+
+    This function builds a 3×3 canvas, optionally embeds a user-provided image,
+    runs Stable Diffusion inpainting to generate multiple variations, and then
+    slices the generated result into individual tiles based on a detected grid.
+    Each iteration is saved to a timestamped output directory.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Runtime arguments controlling the generation process, including:
+        - text: Prompt used for image generation.
+        - negative: Negative prompt to steer generation away from undesired features.
+        - steps: Number of inference steps.
+        - seed: Random seed for deterministic output.
+        - embed: Optional image path to embed into the canvas.
+        - embedx / embedy: Coordinates where the embedded image is placed.
+
+    Side Effects
+    ------------
+    - Creates a timestamped output directory and per-iteration subdirectories.
+    - Writes generated images and cropped tile images to disk.
+    - Allocates GPU memory and clears cache between iterations.
+
+    Notes
+    -----
+    - Uses ``StableDiffusionInpaintPipeline`` with half-precision (FP16).
+    - NSFW filtering can be disabled via ``ALLOW_NSFW``.
+    - Tile extraction depends on ``get_image_mask_rows`` to detect valid regions.
+    - Designed for batch exploration of multiple generation options.
+    """    
     timestamp = str(datetime.datetime.now().timestamp())
     ensure_dir(timestamp)
 
