@@ -23,7 +23,7 @@ URL = "https://www.sito.org/cgi-bin/gridcosm/gridcosm?level=top"
 BASEURL = "https://www.sito.org"
 
 MODEL_ID = "5w4n/deliberate-v2-inpainting"
-MODEL_CACHE = "hf_models"
+MODEL_CACHE = "/home/rgg/hf_models"
 
 
 
@@ -150,6 +150,32 @@ def get_image_mask_rows(image):
 # =========================================================
 
 def read_arguments():
+    """
+    Parse command-line arguments for the grid outpainting workflow.
+
+    This function defines and parses all CLI options required to control
+    Stable Diffusion inpainting and grid-based outpainting. It returns an
+    ``argparse.Namespace`` containing generation prompts, inference settings,
+    and optional image embedding parameters.
+
+    Returns
+    -------
+    argparse.Namespace
+        Parsed command-line arguments with the following attributes:
+        - text (str): Prompt describing the desired image.
+        - negative (str): Negative prompt to suppress unwanted features.
+        - steps (int): Number of inference steps.
+        - seed (int): Random seed for reproducible generation.
+        - embed (str | None): Optional path to an image to embed.
+        - embedx (int): X-coordinate for embedded image placement.
+        - embedy (int): Y-coordinate for embedded image placement.
+
+    Notes
+    -----
+    - Required arguments must be explicitly provided on the command line.
+    - Defaults are applied where appropriate (e.g., ``SEED``).
+    - Intended to be used as the single source of CLI configuration.
+    """    
     parser = argparse.ArgumentParser(
         description="Grid outpainting with cached SD inpainting pipeline"
     )
