@@ -1,4 +1,49 @@
 #!venv/bin/python3
+"""
+Grid-based image outpainting using Stable Diffusion inpainting.
+
+This script scrapes a remote grid-style image layout, reconstructs the
+available tiles into a composite canvas, and uses Stable Diffusion
+inpainting to synthesize missing regions. The generated result is then
+iteratively refined to produce multiple variations, which are saved
+both as full images and as individual grid tiles.
+
+Core features
+-------------
+- Scrapes a 3×3 grid of images from a target website.
+- Rebuilds the known tiles into a base image.
+- Automatically constructs an inpainting mask for missing cells.
+- Uses a cached Stable Diffusion inpainting model for fast iteration.
+- Supports optional image embedding at user-defined coordinates.
+- Generates multiple output variations in a single run.
+- Saves per-iteration outputs in timestamped directories.
+
+Intended use
+------------
+This tool is designed for experimental image exploration, procedural
+outpainting, and grid-based visual expansion workflows. It is especially
+useful when working with tiled or partially-known image layouts that
+benefit from generative completion.
+
+Requirements
+------------
+- CUDA-capable GPU
+- PyTorch
+- diffusers
+- Pillow (PIL)
+- BeautifulSoup4
+- requests
+
+Execution
+---------
+Run the script from the command line and provide prompts and parameters
+via CLI arguments. See ``--help`` for details.
+
+Note
+----
+NSFW filtering can be disabled via configuration. Use responsibly and
+ensure compliance with model and content policies.
+"""
 from io import BytesIO
 import os
 import argparse
@@ -46,12 +91,48 @@ HEADERS = {
 #def dummy(images, **kwargs):
 #    return images, False
 
-def dummy(images, **kwargs):
+def dummy(images, **kwargs): #pylint: disable=unused-argument
+    """
+    Bypass safety checking by marking all images as safe.
+
+    This function acts as a drop-in replacement for a Stable Diffusion
+    safety checker. It returns the input images unchanged and marks each
+    image as non-NSFW.
+
+    Parameters
+    ----------
+    images : list
+        A list of generated images.
+    **kwargs
+        Ignored keyword arguments included for API compatibility.
+
+    Returns
+    -------
+    tuple
+        A tuple ``(images, flags)`` where ``flags`` is a list of ``False``
+        values indicating no NSFW content was detected.
+    """
     return images, [False] * len(images)
 
 
 
 def ensure_dir(path):
+    """
+    Ensure that a directory exists.
+
+    This function creates the specified directory path if it does not
+    already exist. Intermediate directories are created as needed.
+
+    Parameters
+    ----------
+    path : str
+        Directory path to create or verify.
+
+    Notes
+    -----
+    - Directory creation is idempotent.
+    - Uses ``exist_ok=True`` to avoid errors if the directory already exists.
+    """
     os.makedirs(path, exist_ok=True)
 
 
@@ -59,13 +140,13 @@ def ensure_dir(path):
 # Grid Scraping + Mask Construction
 # =========================================================
 
-def get_image_mask_rows(image):
+def get_image_mask_rows(image): #pylint: disable=too-many-locals
     """
     Scrapes grid, reconstructs base image,
     and builds inpainting mask for missing tiles.
     """
 
-    fn = lambda x: 255 if x > 254 else 0
+    fn = lambda x: 255 if x > 254 else 0 #pylint: disable=unnecessary-lambda-assignment
     mask = image.convert("L").point(fn, mode="1")
     pmask = Image.new("RGB", (TILE_SIZE, TILE_SIZE), (0, 0, 0))
 
@@ -101,7 +182,7 @@ def get_image_mask_rows(image):
                     headers=HEADERS,
                     timeout=15
                 )
-            except Exception as e:
+            except Exception as e: #pylint: disable=broad-exception-caught
                 print(f"[ERROR] request failed: {e}")
                 continue
 
@@ -113,15 +194,15 @@ def get_image_mask_rows(image):
                     f"{content_type} "
                     f"bytes={len(response.content)}"
                 )
-                with open("failed_urls.txt", "a") as f:
+                with open("failed_urls.txt", "a") as f: #pylint: disable=unspecified-encoding
                     f.write(full_url + "\n")
                 continue
 
             try:
                 part = Image.open(BytesIO(response.content)).convert("RGB")
-            except Exception as e:
+            except Exception as e: #pylint: disable=broad-exception-caught
                 print(f"[SKIP] PIL error: {e}")
-                with open("failed_urls.txt", "a") as f:
+                with open("failed_urls.txt", "a") as f: #pylint: disable=unspecified-encoding
                     f.write(full_url + "\n")
                 continue
 
@@ -175,7 +256,7 @@ def read_arguments():
     - Required arguments must be explicitly provided on the command line.
     - Defaults are applied where appropriate (e.g., ``SEED``).
     - Intended to be used as the single source of CLI configuration.
-    """    
+    """
     parser = argparse.ArgumentParser(
         description="Grid outpainting with cached SD inpainting pipeline"
     )
@@ -229,7 +310,7 @@ def gen_images(args): #pylint: disable=too-many-locals
     - NSFW filtering can be disabled via ``ALLOW_NSFW``.
     - Tile extraction depends on ``get_image_mask_rows`` to detect valid regions.
     - Designed for batch exploration of multiple generation options.
-    """    
+    """
     timestamp = str(datetime.datetime.now().timestamp())
     ensure_dir(timestamp)
 
@@ -330,10 +411,9 @@ def main():
 
     Returns:
         None
-    """    
+    """
     args = read_arguments()
     gen_images(args)
 
 if __name__ == "__main__":
     main()
-
