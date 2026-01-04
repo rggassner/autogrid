@@ -68,7 +68,7 @@ URL = "https://www.sito.org/cgi-bin/gridcosm/gridcosm?level=top"
 BASEURL = "https://www.sito.org"
 
 MODEL_ID = "5w4n/deliberate-v2-inpainting"
-MODEL_CACHE = "/home/rgg/hf_models"
+MODEL_CACHE = "hf_models"
 
 
 
