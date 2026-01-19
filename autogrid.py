@@ -60,7 +60,9 @@ from diffusers import StableDiffusionInpaintPipeline
 
 N_OPTIONS = 200
 TILE_SIZE = 150
-SD_SIZE = 512
+#SD_SIZE = 1024
+SD_SIZE = TILE_SIZE * 3 * 2  # 900
+
 
 ALLOW_NSFW = True
 
@@ -217,7 +219,8 @@ def get_image_mask_rows(image): #pylint: disable=too-many-locals
 
         rowcount += 1
 
-    mask = mask.resize((SD_SIZE, SD_SIZE), Image.Resampling.LANCZOS)
+    #mask = mask.resize((SD_SIZE, SD_SIZE), Image.Resampling.LANCZOS)
+    mask = mask.resize((SD_SIZE, SD_SIZE), Image.Resampling.NEAREST)
     image = image.resize((SD_SIZE, SD_SIZE), Image.Resampling.LANCZOS)
 
     mask.save("outm.png")
